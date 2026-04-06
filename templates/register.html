@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Register Student — ZKP Attendance{% endblock %}
+{% block content %}
+
+<h1>Student Registration</h1>
+<p class="subtitle">// one-time credential generation — identity verified once, never stored</p>
+
+{% if error %}
+  <div class="alert alert-error">⚠ {{ error }}</div>
+{% endif %}
+
+{% if success %}
+  <!-- ── Success: show credentials ── -->
+  <div class="card card-green">
+    <span class="badge badge-green">Registration Successful</span>
+    <h2 style="border:none; margin-top:.8rem; color: var(--green);">
+      Credentials Generated for <span style="color:var(--accent)">{{ student_id }}</span>
+    </h2>
+
+    <div class="code-block">
+<span class="key">Student ID</span>  <span class="op">:</span> <span class="val">{{ student_id }}</span>
+<span class="key">Prime  (p)</span>  <span class="op">:</span> <span class="val">{{ p }}</span>
+<span class="key">Generator (g)</span> <span class="op">:</span> <span class="val">{{ g }}</span>
+
+<span class="op">── Key Generation ──────────────────────────</span>
+<span class="key">Secret key  x</span> <span class="op">=</span> <span class="eq">{{ x }}</span>    <span class="op">← SAVE THIS! Shown only once.</span>
+<span class="key">Public cred y</span> <span class="op">=</span> g^x mod p <span class="op">=</span> {{ g }}^{{ x }} mod {{ p }} <span class="op">=</span> <span class="val">{{ y }}</span>
+
+<span class="op">Stored on server: y = {{ y }}   (x is never stored)</span>
+    </div>
+
+    <div class="alert alert-success">
+      ✓ Public credential <strong>y = {{ y }}</strong> stored on server.<br>
+      Your secret key is <strong>x = {{ x }}</strong>. Treat this like a password.
+    </div>
+
+    <div style="margin-top:1rem; display:flex; gap:.8rem; flex-wrap:wrap;">
+      <a href="/register" class="btn btn-ghost">Register another →</a>
+      <a href="/teacher"  class="btn btn-ghost">Go to Teacher panel →</a>
+      <a href="/student"  class="btn btn-primary">Go to Attendance →</a>
+    </div>
+  </div>
+
+{% else %}
+  <!-- ── Registration form ── -->
+  <div class="card card-accent">
+    <p class="dim" style="margin-bottom:1.4rem;">
+      Enter a student ID (e.g. <span class="mono" style="color:var(--accent)">alice</span>,
+      <span class="mono" style="color:var(--accent)">student1</span>).
+      The system will generate a unique cryptographic key pair.
+    </p>
+
+    <form method="POST" action="/register">
+      <label for="student_id">Student ID</label>
+      <input type="text" id="student_id" name="student_id"
+             placeholder="e.g. alice or student1"
+             autocomplete="off" required />
+      <button type="submit" class="btn btn-primary">Generate Credentials →</button>
+    </form>
+  </div>
+
+  <div class="card" style="margin-top:1rem;">
+    <h2 style="margin-top:0;">What happens here?</h2>
+    <div class="code-block">
+<span class="key">1.</span> System picks random <span class="val">x ∈ [2, 21]</span>
+<span class="key">2.</span> Computes <span class="val">y = g^x mod p = 5^x mod 23</span>
+<span class="key">3.</span> Stores  <span class="val">y</span> → server database
+<span class="key">4.</span> Returns <span class="val">x</span> → you (never stored server-side)
+    </div>
+    <p class="dim">Only <strong style="color:var(--text)">y</strong> is kept by the system.
+    Your secret <strong style="color:var(--text)">x</strong> stays with you.</p>
+  </div>
+{% endif %}
+
+{% endblock %}

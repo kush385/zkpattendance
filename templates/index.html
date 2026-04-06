@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}ZKP Attendance — Home{% endblock %}
+{% block content %}
+
+<h1>Zero-Knowledge Proof Attendance</h1>
+<p class="subtitle">// prove you're enrolled — without revealing who you are</p>
+
+<div class="card card-accent">
+  <h2 style="margin-top:0; border:none;">How it works</h2>
+  <div class="code-block"><span class="key">Protocol</span>  <span class="op">:</span> Schnorr Identification (Sigma Protocol)
+<span class="key">Params   </span>  <span class="op">:</span> p = 23 (prime), g = 5 (generator), ord(g) = 22
+
+<span class="op">── Registration ────────────────────────────────────</span>
+  Student chooses secret   <span class="val">x  ∈ [2, 21]</span>   (random)
+  System computes public   <span class="val">y  = g^x mod p</span>
+  Stored on server:        <span class="val">y</span>   (never x)
+
+<span class="op">── Attendance (Schnorr Proof) ──────────────────────</span>
+  Teacher broadcasts       <span class="val">c</span>   (random challenge / nonce)
+  Student picks random     <span class="val">r  ∈ [2, 21]</span>
+  Student computes:        <span class="val">t  = g^r mod p</span>
+                           <span class="val">s  = (r + c·x) mod 22</span>
+  Sends (t, s) — no x!
+
+<span class="op">── Verification ────────────────────────────────────</span>
+  Server checks:           <span class="eq">g^s ≡ t · y^c  (mod p)</span>
+  Valid ⟹ attendance marked ✓</div>
+</div>
+
+<div class="row">
+  <div class="col card card-purple">
+    <span class="badge badge-purple">Step 1</span>
+    <h2 style="border:none; margin-top:.6rem;">Register Student</h2>
+    <p class="dim" style="margin-bottom:1rem;">One-time setup. System generates your secret key x and public credential y.</p>
+    <a href="/register" class="btn btn-primary">Go to Registration →</a>
+  </div>
+  <div class="col card card-accent">
+    <span class="badge badge-accent">Step 2</span>
+    <h2 style="border:none; margin-top:.6rem;">Teacher: Generate Challenge</h2>
+    <p class="dim" style="margin-bottom:1rem;">Teacher generates a random nonce c to start an attendance session.</p>
+    <a href="/teacher" class="btn btn-ghost">Teacher Panel →</a>
+  </div>
+  <div class="col card card-green">
+    <span class="badge badge-green">Step 3</span>
+    <h2 style="border:none; margin-top:.6rem;">Student: Prove & Submit</h2>
+    <p class="dim" style="margin-bottom:1rem;">Student uses secret x + challenge c to generate a ZK proof. Identity stays hidden.</p>
+    <a href="/student" class="btn btn-green">Attendance Portal →</a>
+  </div>
+</div>
+
+{% endblock %}

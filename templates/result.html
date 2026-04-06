@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Verification Result — ZKP Attendance{% endblock %}
+{% block content %}
+
+<h1>Verification Result</h1>
+<p class="subtitle">// server-side Schnorr equation check</p>
+
+<!-- ── Big result banner ── -->
+{% if success %}
+<div class="card card-green" style="text-align:center; padding:2.5rem;">
+  <div style="font-size:3rem; margin-bottom:.5rem;">✓</div>
+  <div style="font-family:var(--mono); font-size:1.4rem; color:var(--green); font-weight:700;">
+    ATTENDANCE MARKED
+  </div>
+  <div class="mono dim" style="margin-top:.5rem;">
+    Student <span style="color:var(--accent)">{{ student_id }}</span> — proof valid
+  </div>
+</div>
+{% else %}
+<div class="card card-red" style="text-align:center; padding:2.5rem;">
+  <div style="font-size:3rem; margin-bottom:.5rem;">✗</div>
+  <div style="font-family:var(--mono); font-size:1.4rem; color:var(--red); font-weight:700;">
+    PROOF REJECTED
+  </div>
+  {% if error %}
+  <div class="mono dim" style="margin-top:.5rem; color:var(--red);">{{ error }}</div>
+  {% else %}
+  <div class="mono dim" style="margin-top:.5rem;">
+    Equation mismatch — wrong key, stale challenge, or tampered proof.
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+{% if steps %}
+<!-- ── Equation walkthrough ── -->
+<div class="card card-accent">
+  <span class="badge badge-accent">Verification Trace</span>
+  <h2 style="border:none; margin-top:.8rem;">Step-by-Step Equation Check</h2>
+
+  <div class="code-block">
+<span class="op">── Inputs ─────────────────────────────────────────────</span>
+<span class="key">Student ID </span>: <span class="val">{{ student_id }}</span>
+<span class="key">Public cred y</span>: <span class="val">{{ y }}</span>   <span class="op">(stored at registration)</span>
+<span class="key">Challenge c</span>: <span class="val">{{ c }}</span>
+<span class="key">Proof t    </span>: <span class="val">{{ t }}</span>
+<span class="key">Proof s    </span>: <span class="val">{{ s }}</span>
+
+<span class="op">── Equation: g^s ≡ t · y^c (mod p) ───────────────────</span>
+<span class="key">LHS </span>: {{ steps.lhs_expr }}
+<span class="key">RHS </span>: {{ steps.rhs_expr }}
+
+<span class="eq">{{ steps.equation }}</span>
+
+<span class="op">── Why it works ────────────────────────────────────────</span>
+<span class="op">g^s = g^(r + c·x) = g^r · (g^x)^c = t · y^c  (mod p)</span>
+<span class="op">Server confirms equality without ever learning x or r.</span>
+  </div>
+</div>
+{% endif %}
+
+<!-- ── Attendance log ── -->
+{% if log %}
+<div class="card">
+  <span class="badge badge-purple">Session Log</span>
+  <h2 style="border:none; margin-top:.8rem;">Recent Verifications</h2>
+  <table>
+    <tr><th>#</th><th>Student</th><th>LHS</th><th>RHS</th><th>Result</th></tr>
+    {% for entry in log %}
+    <tr>
+      <td class="dim">{{ loop.index }}</td>
+      <td class="mono" style="color:var(--accent)">{{ entry.student_id }}</td>
+      <td class="mono">{{ entry.lhs }}</td>
+      <td class="mono">{{ entry.rhs }}</td>
+      <td>
+        {% if entry.success %}
+          <span class="badge badge-green">{{ entry.result }}</span>
+        {% else %}
+          <span class="badge badge-red">{{ entry.result }}</span>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+
+<!-- ── Actions ── -->
+<div style="display:flex; gap:.8rem; flex-wrap:wrap; margin-top:.5rem;">
+  <a href="/student"  class="btn btn-primary">Try Again →</a>
+  <a href="/teacher"  class="btn btn-ghost">Teacher Panel →</a>
+  <a href="/register" class="btn btn-ghost">Register Student →</a>
+  <a href="/"         class="btn btn-ghost">Home →</a>
+</div>
+
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Teacher Panel — ZKP Attendance{% endblock %}
+{% block content %}
+
+<h1>Teacher Panel</h1>
+<p class="subtitle">// generate a session challenge — broadcast to all students</p>
+
+<div class="row">
+  <!-- ── Challenge Generator ── -->
+  <div class="col card card-accent" style="min-width:280px;">
+    <span class="badge badge-accent">Active Session</span>
+    <h2 style="border:none; margin-top:.8rem;">Challenge (nonce c)</h2>
+
+    <div class="code-block" id="challenge-display">
+{% if challenge %}
+<span class="key">c</span> = <span class="val" id="c-value">{{ challenge }}</span>
+<span class="op">  ← broadcast this to students</span>
+{% else %}
+<span class="op">No challenge yet. Generate one below.</span>
+{% endif %}
+    </div>
+
+    <button class="btn btn-primary" onclick="generateChallenge()">
+      ↻ Generate New Challenge
+    </button>
+    <p class="dim" style="margin-top:.6rem;">
+      Each new challenge invalidates old proofs (prevents replay attacks).
+    </p>
+  </div>
+
+  <!-- ── Registered Students ── -->
+  <div class="col card" style="min-width:280px;">
+    <span class="badge badge-purple">Registry</span>
+    <h2 style="border:none; margin-top:.8rem;">Registered Students</h2>
+    {% if students %}
+      <table>
+        <tr><th>#</th><th>Student ID</th><th>Credential</th></tr>
+        {% for sid in students %}
+        <tr>
+          <td class="dim">{{ loop.index }}</td>
+          <td style="color:var(--accent)" class="mono">{{ sid }}</td>
+          <td><span class="badge badge-accent">enrolled</span></td>
+        </tr>
+        {% endfor %}
+      </table>
+    {% else %}
+      <p class="dim">No students registered yet. <a href="/register" style="color:var(--accent)">Register one →</a></p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ── Attendance Log ── -->
+<div class="card" style="margin-top:0;">
+  <span class="badge badge-green">Log</span>
+  <h2 style="border:none; margin-top:.8rem;">Recent Attendance Verifications</h2>
+  {% if log %}
+    <table>
+      <tr><th>#</th><th>Student</th><th>LHS (g^s)</th><th>RHS (t·y^c)</th><th>Result</th></tr>
+      {% for entry in log %}
+      <tr>
+        <td class="dim">{{ loop.index }}</td>
+        <td class="mono" style="color:var(--accent)">{{ entry.student_id }}</td>
+        <td class="mono">{{ entry.lhs }}</td>
+        <td class="mono">{{ entry.rhs }}</td>
+        <td>
+          {% if entry.success %}
+            <span class="badge badge-green">{{ entry.result }}</span>
+          {% else %}
+            <span class="badge badge-red">{{ entry.result }}</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p class="dim">No verifications recorded yet.</p>
+  {% endif %}
+</div>
+
+<script>
+async function generateChallenge() {
+  const res  = await fetch('/generate_challenge', { method: 'POST' });
+  const data = await res.json();
+  document.getElementById('challenge-display').innerHTML =
+    `<span class="key">c</span> = <span class="val" id="c-value">${data.challenge}</span>\n<span class="op">  ← broadcast this to students</span>`;
+}
+</script>
+
+{% endblock %}

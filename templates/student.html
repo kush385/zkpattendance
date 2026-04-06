@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Student Attendance — ZKP Attendance{% endblock %}
+{% block content %}
+
+<h1>Student Attendance Portal</h1>
+<p class="subtitle">// prove you're enrolled — reveal nothing else</p>
+
+{% if not challenge %}
+<div class="alert alert-error">
+  ⚠ No active challenge. Ask your teacher to generate one on the
+  <a href="/teacher" style="color:var(--red)">Teacher Panel</a>.
+</div>
+{% endif %}
+
+<div class="row">
+  <!-- ── Left: inputs ── -->
+  <div class="col card card-accent" style="min-width:300px;">
+    <span class="badge badge-accent">Proof Generator</span>
+    <h2 style="border:none; margin-top:.8rem;">Your Details</h2>
+
+    <label for="student_id">Student ID</label>
+    <input type="text" id="student_id" placeholder="e.g. alice" autocomplete="off" />
+
+    <label for="x_input">Your Secret Key (x)</label>
+    <input type="number" id="x_input" placeholder="The x value from registration" min="1" />
+
+    <label>Active Challenge (c)</label>
+    <div class="code-block" style="margin-bottom:1.1rem; padding:.5rem .9rem;">
+      <span class="val" id="c-display">
+        {% if challenge %}{{ challenge }}{% else %}—  (not generated yet){% endif %}
+      </span>
+    </div>
+
+    <button class="btn btn-primary" onclick="generateProof()"
+      {% if not challenge %}disabled title="Wait for teacher to generate a challenge"{% endif %}>
+      ⚙ Generate ZK Proof
+    </button>
+  </div>
+
+  <!-- ── Right: proof output ── -->
+  <div class="col card card-purple" style="min-width:300px;">
+    <span class="badge badge-purple">Proof Values</span>
+    <h2 style="border:none; margin-top:.8rem;">Computed Proof (t, s)</h2>
+    <div class="code-block" id="proof-display">
+<span class="op">Waiting for proof generation...</span>
+
+<span class="op">Steps shown here after you click</span>
+<span class="op">"Generate ZK Proof"</span>
+    </div>
+
+    <button class="btn btn-green" id="submit-btn" style="display:none"
+            onclick="submitProof()">
+      ✓ Submit Proof for Verification →
+    </button>
+  </div>
+</div>
+
+<!-- ── How it works ── -->
+<div class="card" style="margin-top:0;">
+  <h2 style="margin-top:0;">What's happening here?</h2>
+  <div class="code-block">
+<span class="key">INPUT :</span> your secret x, teacher's challenge c
+<span class="key">STEP 1:</span> Pick random  <span class="val">r ∈ [2, {{ order }}-1]</span>
+<span class="key">STEP 2:</span> Compute commitment  <span class="val">t = g^r mod p = {{ g }}^r mod {{ p }}</span>
+<span class="key">STEP 3:</span> Compute response   <span class="val">s = (r + c·x) mod {{ order }}</span>
+<span class="key">SEND  :</span> (t, s)  — your identity x is <span class="eq">never transmitted</span>
+  </div>
+</div>
+
+<!-- Hidden form for final POST -->
+<form id="verify-form" method="POST" action="/verify" style="display:none">
+  <input type="hidden" name="student_id" id="form_student_id" />
+  <input type="hidden" name="t"          id="form_t" />
+  <input type="hidden" name="s"          id="form_s" />
+</form>
+
+<script>
+let proofData = null;
+
+async function generateProof() {
+  const sid = document.getElementById('student_id').value.trim();
+  const x   = document.getElementById('x_input').value.trim();
+  const c   = {{ challenge if challenge else 'null' }};
+
+  if (!sid || !x) { alert('Enter both Student ID and secret key x.'); return; }
+  if (!c)          { alert('No active challenge. Ask teacher first.'); return; }
+
+  const fd = new FormData();
+  fd.append('student_id', sid);
+  fd.append('x', x);
+  fd.append('c', c);
+
+  const res  = await fetch('/submit_proof', { method: 'POST', body: fd });
+  const data = await res.json();
+
+  if (data.error) {
+    document.getElementById('proof-display').textContent = '⚠ Error: ' + data.error;
+    return;
+  }
+
+  proofData = data;
+
+  document.getElementById('proof-display').innerHTML =
+    `<span class="key">Student ID </span> : <span class="val">${data.student_id}</span>\n` +
+    `<span class="key">Challenge c </span> : <span class="val">${data.c}</span>\n\n` +
+    `<span class="op">── Proof Generation Steps ────────────────</span>\n` +
+    `<span class="key">1. </span>${data.steps.r_chosen}\n` +
+    `<span class="key">2. </span>${data.steps.t_computed}\n` +
+    `<span class="key">3. </span>${data.steps.s_computed}\n\n` +
+    `<span class="op">── Proof to Submit ───────────────────────</span>\n` +
+    `<span class="key">t </span> = <span class="eq">${data.t}</span>\n` +
+    `<span class="key">s </span> = <span class="eq">${data.s}</span>\n` +
+    `<span class="op">(x is NOT in this proof)</span>`;
+
+  document.getElementById('submit-btn').style.display = 'inline-block';
+}
+
+function submitProof() {
+  if (!proofData) return;
+  document.getElementById('form_student_id').value = proofData.student_id;
+  document.getElementById('form_t').value           = proofData.t;
+  document.getElementById('form_s').value           = proofData.s;
+  document.getElementById('verify-form').submit();
+}
+</script>
+
+{% endblock %}

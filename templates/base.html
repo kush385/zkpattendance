@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}ZKP Attendance{% endblock %}</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:       #0a0d12;
+      --surface:  #111620;
+      --border:   #1e2a3a;
+      --accent:   #00e5ff;
+      --accent2:  #7c3aed;
+      --green:    #00ff9d;
+      --red:      #ff4560;
+      --text:     #c9d8e8;
+      --muted:    #4a6074;
+      --mono:     'JetBrains Mono', monospace;
+      --sans:     'Space Grotesk', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      background-image:
+        radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0,229,255,.07) 0%, transparent 70%),
+        repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,.02) 39px, rgba(255,255,255,.02) 40px),
+        repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,.02) 39px, rgba(255,255,255,.02) 40px);
+    }
+
+    /* ── Nav ── */
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      padding: .9rem 2rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(10,13,18,.85);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    nav .logo {
+      font-family: var(--mono);
+      font-size: .95rem;
+      color: var(--accent);
+      letter-spacing: .04em;
+      margin-right: auto;
+    }
+    nav .logo span { color: var(--muted); }
+    nav a {
+      font-family: var(--mono);
+      font-size: .78rem;
+      color: var(--muted);
+      text-decoration: none;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      padding: .35rem .7rem;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      transition: all .2s;
+    }
+    nav a:hover, nav a.active {
+      color: var(--accent);
+      border-color: rgba(0,229,255,.25);
+      background: rgba(0,229,255,.05);
+    }
+
+    /* ── Layout ── */
+    main {
+      max-width: 860px;
+      margin: 3rem auto;
+      padding: 0 1.5rem 4rem;
+    }
+
+    /* ── Typography ── */
+    h1 {
+      font-family: var(--mono);
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: .4rem;
+      letter-spacing: -.01em;
+    }
+    h2 {
+      font-family: var(--mono);
+      font-size: 1.05rem;
+      color: var(--text);
+      margin: 1.8rem 0 .8rem;
+      padding-bottom: .4rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .subtitle {
+      font-family: var(--mono);
+      font-size: .78rem;
+      color: var(--muted);
+      margin-bottom: 2.5rem;
+      letter-spacing: .04em;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.6rem;
+      margin-bottom: 1.2rem;
+    }
+    .card-accent { border-left: 3px solid var(--accent); }
+    .card-green  { border-left: 3px solid var(--green); }
+    .card-red    { border-left: 3px solid var(--red); }
+    .card-purple { border-left: 3px solid var(--accent2); }
+
+    /* ── Forms ── */
+    label {
+      display: block;
+      font-family: var(--mono);
+      font-size: .72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      margin-bottom: .4rem;
+    }
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: .9rem;
+      padding: .6rem .9rem;
+      margin-bottom: 1.1rem;
+      outline: none;
+      transition: border-color .2s;
+    }
+    input:focus { border-color: var(--accent); }
+
+    button, .btn {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: .8rem;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      padding: .65rem 1.4rem;
+      transition: all .2s;
+      text-decoration: none;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+    }
+    .btn-primary:hover { filter: brightness(1.15); transform: translateY(-1px); }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+    .btn-green  { background: var(--green); color: #000; }
+    .btn-green:hover  { filter: brightness(1.1); transform: translateY(-1px); }
+
+    /* ── Code / terminal blocks ── */
+    .code-block {
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1rem 1.2rem;
+      font-family: var(--mono);
+      font-size: .82rem;
+      color: #a0c4d8;
+      white-space: pre-wrap;
+      word-break: break-all;
+      margin: .6rem 0 1rem;
+      line-height: 1.7;
+    }
+    .code-block .key   { color: var(--accent); }
+    .code-block .val   { color: var(--green); }
+    .code-block .op    { color: var(--muted); }
+    .code-block .eq    { color: #ffb347; }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: .68rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: .2rem .6rem;
+      border-radius: 3px;
+      margin-right: .4rem;
+    }
+    .badge-accent  { background: rgba(0,229,255,.12); color: var(--accent); }
+    .badge-green   { background: rgba(0,255,157,.12); color: var(--green); }
+    .badge-red     { background: rgba(255,69,96,.12);  color: var(--red); }
+    .badge-purple  { background: rgba(124,58,237,.15); color: #a78bfa; }
+
+    /* ── Alert ── */
+    .alert {
+      font-family: var(--mono);
+      font-size: .82rem;
+      padding: .8rem 1rem;
+      border-radius: 5px;
+      margin-bottom: 1rem;
+    }
+    .alert-error   { background: rgba(255,69,96,.1); border: 1px solid rgba(255,69,96,.3); color: var(--red); }
+    .alert-success { background: rgba(0,255,157,.1); border: 1px solid rgba(0,255,157,.3); color: var(--green); }
+
+    /* ── Table ── */
+    table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: .8rem; }
+    th { color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 400;
+         padding: .4rem .8rem; border-bottom: 1px solid var(--border); text-align: left; }
+    td { padding: .5rem .8rem; border-bottom: 1px solid rgba(30,42,58,.5); }
+    tr:last-child td { border-bottom: none; }
+
+    /* ── Misc ── */
+    .row { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .col { flex: 1; min-width: 200px; }
+    .mono { font-family: var(--mono); }
+    .dim  { color: var(--muted); font-size: .8rem; }
+    hr { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+    .mt { margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <nav>
+    <span class="logo">⟨zkp<span>/</span>attendance⟩</span>
+    <a href="/"         {% if request.path=='/' %}class="active"{% endif %}>Home</a>
+    <a href="/register" {% if request.path=='/register' %}class="active"{% endif %}>Register</a>
+    <a href="/teacher"  {% if request.path=='/teacher'  %}class="active"{% endif %}>Teacher</a>
+    <a href="/student"  {% if request.path=='/student'  %}class="active"{% endif %}>Student</a>
+  </nav>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>
